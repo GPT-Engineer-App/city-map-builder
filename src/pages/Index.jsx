@@ -70,7 +70,7 @@ const Map = ({ map, roads }) => (
       )),
     )}
     {roads.map((road, index) => (
-      <Box key={index} position="absolute" top={`${road.x1 * CELL_SIZE + CELL_SIZE / 2}px`} left={`${road.y1 * CELL_SIZE + CELL_SIZE / 2}px`} width={`${Math.abs(road.x2 - road.x1) * CELL_SIZE}px`} height={`${Math.abs(road.y2 - road.y1) * CELL_SIZE}px`} border="1px solid black" />
+      <Box key={index} position="absolute" top={`${road.x1 * CELL_SIZE + CELL_SIZE / 2}px`} left={`${road.y1 * CELL_SIZE + CELL_SIZE / 2}px`} width={`${Math.abs(road.x2 - road.x1) * CELL_SIZE}px`} height={`${Math.abs(road.y2 - road.y1) * CELL_SIZE}px`} backgroundColor="black" />
     ))}
   </Grid>
 );
