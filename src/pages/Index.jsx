@@ -11,7 +11,7 @@ const generateRandomMap = () => {
     .map(() => Array(GRID_SIZE).fill(null));
   const items = ["house", "store"];
 
-  // Place houses and stores randomly
+  const points = [];
   for (let i = 0; i < 10; i++) {
     const item = items[Math.floor(Math.random() * items.length)];
     let x, y;
@@ -20,13 +20,41 @@ const generateRandomMap = () => {
       y = Math.floor(Math.random() * GRID_SIZE);
     } while (map[x][y] !== null);
     map[x][y] = item;
+    points.push({ x, y });
   }
 
-  // Generate roads to connect all houses and stores
   const roads = [];
-  const visited = Array(GRID_SIZE)
+  const parent = Array(points.length)
     .fill(null)
-    .map(() => Array(GRID_SIZE).fill(false));
+    .map((_, index) => index);
+
+  const find = (i) => {
+    if (parent[i] === i) return i;
+    return (parent[i] = find(parent[i]));
+  };
+
+  const union = (i, j) => {
+    const rootI = find(i);
+    const rootJ = find(j);
+    if (rootI !== rootJ) parent[rootJ] = rootI;
+  };
+
+  const edges = [];
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      const dist = Math.abs(points[i].x - points[j].x) + Math.abs(points[i].y - points[j].y);
+      edges.push({ i, j, dist });
+    }
+  }
+
+  edges.sort((a, b) => a.dist - b.dist);
+
+  for (const { i, j } of edges) {
+    if (find(i) !== find(j)) {
+      union(i, j);
+      connectRoads(points[i].x, points[i].y, points[j].x, points[j].y);
+    }
+  }
 
   const connectRoads = (x1, y1, x2, y2) => {
     if (x1 === x2) {
@@ -37,36 +65,14 @@ const generateRandomMap = () => {
       for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
         roads.push({ x1: x, y1, x2: x, y2 });
       }
+    } else {
+      const midX = Math.floor((x1 + x2) / 2);
+      const midY = Math.floor((y1 + y2) / 2);
+      connectRoads(x1, y1, midX, y1);
+      connectRoads(midX, y1, midX, y2);
+      connectRoads(midX, y2, x2, y2);
     }
   };
-
-  const dfs = (x, y) => {
-    visited[x][y] = true;
-    const directions = [
-      { dx: 1, dy: 0 },
-      { dx: -1, dy: 0 },
-      { dx: 0, dy: 1 },
-      { dx: 0, dy: -1 },
-    ];
-
-    directions.forEach(({ dx, dy }) => {
-      const nx = x + dx;
-      const ny = y + dy;
-      if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE && map[nx][ny] !== null && !visited[nx][ny]) {
-        connectRoads(x, y, nx, ny);
-        dfs(nx, ny);
-      }
-    });
-  };
-
-  outer: for (let i = 0; i < GRID_SIZE; i++) {
-    for (let j = 0; j < GRID_SIZE; j++) {
-      if (map[i][j] !== null) {
-        dfs(i, j);
-        break outer;
-      }
-    }
-  }
 
   return { map, roads };
 };
