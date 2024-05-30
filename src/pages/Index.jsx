@@ -22,13 +22,36 @@ const generateRandomMap = () => {
     map[x][y] = item;
   }
 
-  // Generate roads
+  // Generate roads to connect all houses and stores
   const roads = [];
-  for (let i = 0; i < GRID_SIZE; i++) {
+  const visited = Array(GRID_SIZE)
+    .fill(null)
+    .map(() => Array(GRID_SIZE).fill(false));
+
+  const dfs = (x, y) => {
+    visited[x][y] = true;
+    const directions = [
+      { dx: 1, dy: 0 },
+      { dx: -1, dy: 0 },
+      { dx: 0, dy: 1 },
+      { dx: 0, dy: -1 },
+    ];
+
+    directions.forEach(({ dx, dy }) => {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE && map[nx][ny] !== null && !visited[nx][ny]) {
+        roads.push({ x1: x, y1: y, x2: nx, y2: ny });
+        dfs(nx, ny);
+      }
+    });
+  };
+
+  outer: for (let i = 0; i < GRID_SIZE; i++) {
     for (let j = 0; j < GRID_SIZE; j++) {
       if (map[i][j] !== null) {
-        if (i > 0 && map[i - 1][j] !== null) roads.push({ x1: i, y1: j, x2: i - 1, y2: j });
-        if (j > 0 && map[i][j - 1] !== null) roads.push({ x1: i, y1: j, x2: i, y2: j - 1 });
+        dfs(i, j);
+        break outer;
       }
     }
   }
