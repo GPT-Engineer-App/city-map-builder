@@ -28,6 +28,18 @@ const generateRandomMap = () => {
     .fill(null)
     .map(() => Array(GRID_SIZE).fill(false));
 
+  const connectRoads = (x1, y1, x2, y2) => {
+    if (x1 === x2) {
+      for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+        roads.push({ x1, y1: y, x2, y2: y });
+      }
+    } else if (y1 === y2) {
+      for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+        roads.push({ x1: x, y1, x2: x, y2 });
+      }
+    }
+  };
+
   const dfs = (x, y) => {
     visited[x][y] = true;
     const directions = [
@@ -41,7 +53,7 @@ const generateRandomMap = () => {
       const nx = x + dx;
       const ny = y + dy;
       if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE && map[nx][ny] !== null && !visited[nx][ny]) {
-        roads.push({ x1: x, y1: y, x2: nx, y2: ny });
+        connectRoads(x, y, nx, ny);
         dfs(nx, ny);
       }
     });
@@ -69,9 +81,11 @@ const Map = ({ map, roads }) => (
         </GridItem>
       )),
     )}
-    {roads.map((road, index) => (
-      <Box key={index} position="absolute" top={`${road.x1 * CELL_SIZE + CELL_SIZE / 2}px`} left={`${road.y1 * CELL_SIZE + CELL_SIZE / 2}px`} width={`${Math.abs(road.x2 - road.x1) * CELL_SIZE}px`} height={`${Math.abs(road.y2 - road.y1) * CELL_SIZE}px`} backgroundColor="black" />
-    ))}
+    {roads.map((road, index) => {
+      const isHorizontal = road.y1 === road.y2;
+      const length = isHorizontal ? Math.abs(road.x2 - road.x1) * CELL_SIZE : Math.abs(road.y2 - road.y1) * CELL_SIZE;
+      return <Box key={index} position="absolute" top={isHorizontal ? `${road.y1 * CELL_SIZE + CELL_SIZE / 2 - 2}px` : `${Math.min(road.y1, road.y2) * CELL_SIZE + CELL_SIZE / 2 - 2}px`} left={isHorizontal ? `${Math.min(road.x1, road.x2) * CELL_SIZE + CELL_SIZE / 2 - 2}px` : `${road.x1 * CELL_SIZE + CELL_SIZE / 2 - 2}px`} width={isHorizontal ? `${length}px` : "4px"} height={isHorizontal ? "4px" : `${length}px`} backgroundColor="black" />;
+    })}
   </Grid>
 );
 
